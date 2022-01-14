@@ -1,0 +1,51 @@
+
+read_file -format sverilog { ./TourLogic.sv ./TourLogicSM.sv }
+
+set current_design TourLogic
+
+#'clk' sourced to 'clk' with frequency 500 MHz
+create_clock -name "clk" -period 3 -waveform {0 1} {clk}
+
+#Clock network will no longer be adjusted
+set_dont_touch_network [find port clk]
+
+#Removes clk from the primary input list
+set prim_inputs [remove_from_collection [all_inputs] [find port clk]]
+
+#Setting input delay of 0.4 ns
+set_input_delay -clock clk 0.4 $prim_inputs
+
+#define equivalent drive strenth 
+set_driving_cell -lib_cell NAND2X2_LVT -library saed32lvt_tt0p85v25c $prim_inputs
+
+#setting drive strength of reset to 0.1 ns
+set_drive 0.1 rst_n
+
+#setting all output delay to 0.4 ns
+set_output_delay -clock clk 0.4 [all_outputs]
+
+#setting load of all outputs to 0.1 pf
+set_load 0.1 [all_outputs]
+
+
+set_max_transition 0.15 [current_design]
+
+set_wire_load_model -name 16000 -library saed32lvt_tt0p85v25c
+
+#compiles, removes hierarchy and compiles again
+compile -map_effort medium
+
+set_clock_uncertainty 0.15 clk
+set_fix_hold clk
+
+ungroup -all -flatten
+
+compile -map_effort medium
+
+report_timing -delay max > TourLogic_mintime.txt
+report_timing -delay min > TourLogic_maxtime.txt
+report_area > TourLogic_area.txt
+
+write -format verilog TourLogic -output TourLogic.vg
+
+write_sdc TourLogic.sdc
