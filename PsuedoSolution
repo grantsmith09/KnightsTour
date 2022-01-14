@@ -1,0 +1,10 @@
+Initialize memory(set possMoves to all available, visited to starting square only, prevMove null)
+
+while board not completed
+  Generate possible moves vector for current move, chcking for any squares that may have been visited. 
+  Look for the first possible move 
+    Move to this square(remove this option from the possible moves array of last postion, add this square to the visited array, 
+      add the move to prevMove array)
+    *if no move, go back a move using most recent prevMove to back track. 
+  
+   
